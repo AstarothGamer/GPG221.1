@@ -1,7 +1,8 @@
+using System;
 using TMPro;
 using UnityEngine;
 
-public class Node
+public class Node : IComparable
 {
     public GameObject NodeObject {get; private set;}
     public Vector3 WorldPosition { get; private set; }
@@ -51,5 +52,17 @@ public class Node
         IsWalkable = isWalkable;
         NodeObject = nodeObject;
         NodeObject.GetComponent<Renderer>().material.color = isWalkable ? Color.black : Color.red;
+    }
+
+    public int CompareTo(object obj)
+    {
+        Node node = (Node)obj;
+
+        if (FCost < node.FCost)
+            return -1;
+        else if (FCost > node.FCost)
+            return 1;
+
+        return 0;
     }
 }
