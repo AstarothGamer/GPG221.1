@@ -33,13 +33,6 @@ public class AStar : MonoBehaviour
 
         currentNode = startNode;
         openList.Add(currentNode);
-        //-------------------------------------teacher's way neighbours--------------------------------------//
-
-        // while (true)
-        {
-
-        }
-        //-------------------------------------teacher's way neighbours--------------------------------------//
     }
 
     int CalculateDistance(Vector3Int positionA, Vector3Int positionB)
@@ -50,6 +43,7 @@ public class AStar : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //-------------------------------------teacher's way neighbours--------------------------------------//
         if (Input.GetKeyDown(KeyCode.L))
         {
             openList.Sort();
@@ -113,6 +107,7 @@ public class AStar : MonoBehaviour
                 }
             }
         }
+        //-------------------------------------teacher's way neighbours--------------------------------------//
     }
 
     // public void OpenNeighbours()
