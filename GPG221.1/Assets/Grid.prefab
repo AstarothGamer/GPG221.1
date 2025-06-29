@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7856692620140323026}
   - component: {fileID: 3952434760179709747}
   - component: {fileID: 2299570697201739586}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -115,7 +115,7 @@ GameObject:
   - component: {fileID: 2896125064093944876}
   - component: {fileID: 172912862654017725}
   - component: {fileID: 4311206546332306809}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: 'F_CostText  '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -251,7 +251,7 @@ GameObject:
   - component: {fileID: 3257693720518830220}
   - component: {fileID: 8153803866206033051}
   - component: {fileID: 7342586841946783788}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: 'H_CostText '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -387,8 +387,8 @@ GameObject:
   - component: {fileID: 977257704871886950}
   - component: {fileID: 303692900623652035}
   - component: {fileID: 8382207099592986158}
-  - component: {fileID: 1117527002602115292}
-  m_Layer: 0
+  - component: {fileID: 7432452117976179270}
+  m_Layer: 6
   m_Name: Grid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -464,7 +464,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &1117527002602115292
+--- !u!65 &7432452117976179270
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -496,7 +496,7 @@ GameObject:
   - component: {fileID: 5006585062306494476}
   - component: {fileID: 3218963610770080647}
   - component: {fileID: 8502945409263443800}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: G_CostText
   m_TagString: Untagged
   m_Icon: {fileID: 0}

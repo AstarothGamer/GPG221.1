@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class AStar : MonoBehaviour
@@ -8,31 +7,33 @@ public class AStar : MonoBehaviour
     [SerializeField] Vector3Int goalPosition;
     [SerializeField] Vector3Int currentPosition;
 
+    [SerializeField] UnitMovement unit;
+
     Node startNode;
     Node goalNode;
     Node currentNode;
 
-    //------techer's way neighbours-------//
     List<Node> neighbours = new List<Node>();
-    //------techer's way neighbours-------//
     List<Node> openList = new List<Node>();
     List<Node> closedList = new List<Node>();
+    public List<Node> finalPath = new List<Node>();
+
+    int globalVersion = 0;
 
 
     Grid grid;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     void Start()
     {
         grid = FindObjectOfType<Grid>();
 
+        startPosition = grid.WorldToGridPosition(unit.transform.position);
         startNode = grid.GetNode(startPosition);
         startNode.NodeObject.GetComponent<Renderer>().material.color = Color.green;
 
-        goalNode = grid.GetNode(goalPosition);
-        goalNode.NodeObject.GetComponent<Renderer>().material.color = Color.blue;
-
         currentNode = startNode;
         openList.Add(currentNode);
+        globalVersion++;
     }
 
     int CalculateDistance(Vector3Int positionA, Vector3Int positionB)
@@ -43,52 +44,131 @@ public class AStar : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //-------------------------------------teacher's way neighbours--------------------------------------//
-        if (Input.GetKeyDown(KeyCode.L))
+        if (Input.GetMouseButtonDown(0))
         {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                Vector3Int clickedGridPos = grid.WorldToGridPosition(hit.point);
+                Node node = grid.GetNode(clickedGridPos);
+
+                if (goalNode == node)
+                {
+                    unit.StartFollowingPath();
+                }
+
+                if (node != null && node.IsWalkable)
+                {
+                    Debug.Log("New position found");
+                    goalPosition = clickedGridPos;
+                    goalNode = node;
+                    goalNode.NodeObject.GetComponent<Renderer>().material.color = Color.blue;
+                }
+            }
+
+            RefreshPath();
+
+            FindPath();
+        }    
+    }
+
+    public void RefreshPath()
+    {
+        unit.currentIndex = 0;
+        startPosition = grid.WorldToGridPosition(unit.transform.position);
+        startNode = grid.GetNode(startPosition);
+        startNode.NodeObject.GetComponent<Renderer>().material.color = Color.green;
+
+        for (int i = 0; i < grid.grid.Length; i++)
+        {
+            if (grid.grid[i].IsWalkable)
+            {
+                grid.grid[i].NodeObject.GetComponent<Renderer>().material.color = Color.black;
+            }
+            else
+            {
+                grid.grid[i].NodeObject.GetComponent<Renderer>().material.color = Color.red;
+            }
+        }
+
+            currentNode = startNode;
+            currentNode.parent = null;
+            neighbours.Clear();
+            openList.Clear();
+            closedList.Clear();
+            finalPath.Clear();
+            openList.Add(currentNode);
+            globalVersion++;
+    }
+
+    public void FindPath()
+    {
+        while (true)
+        {            
             openList.Sort();
             currentNode = openList[0];
-            currentNode.NodeObject.GetComponent<Renderer>().material.color = Color.magenta;
             openList.Remove(currentNode);
             closedList.Add(currentNode);
+            currentNode.NodeObject.GetComponent<Renderer>().material.color = Color.magenta;
 
             if (currentNode == goalNode)
             {
-                print("Path was not found");
-                return;
+                print("Path was found");
+                GetFinalPath(currentNode);
+                finalPath.Reverse();
+                for (int i = 0; i < finalPath.Count; i++)
+                {
+                    finalPath[i].NodeObject.GetComponent<Renderer>().material.color = Color.yellow;
+                }
+                break;
             }
 
             neighbours.Clear();
-            Vector3Int leftNodePosition = currentNode.GridPosition + new Vector3Int(-1, 0, 0);
-            if (leftNodePosition.x >= 0)
-            {
-                Node leftNode = grid.GetNode(leftNodePosition);
-                neighbours.Add(leftNode);
-            }
 
-            Vector3Int rightNodePosition = currentNode.GridPosition + new Vector3Int(1, 0, 0);
-            if (rightNodePosition.x < grid.cellCountX)
-            {
-                Node rightNode = grid.GetNode(rightNodePosition);
-                neighbours.Add(rightNode);
-            }
+            //-------------------------------Teacher's version-----------------------------
 
-            Vector3Int downNodePosition = currentNode.GridPosition + new Vector3Int(0, 0, -1);
-            if (downNodePosition.z >= 0)
-            {
-                Node downNode = grid.GetNode(downNodePosition);
-                neighbours.Add(downNode);
-            }
+            // Vector3Int leftNodePosition = currentNode.GridPosition + new Vector3Int(-1, 0, 0);
+            // if (leftNodePosition.x >= 0)
+            // {
+            //     Node leftNode = grid.GetNode(leftNodePosition);
+            //     neighbours.Add(leftNode);
+            // }
 
-            Vector3Int upNodePosition = currentNode.GridPosition + new Vector3Int(0, 0, 1);
-            if (upNodePosition.z < grid.cellCountZ)
-            {
-                Node upNode = grid.GetNode(upNodePosition);
-                neighbours.Add(upNode);
-            }
+            // Vector3Int rightNodePosition = currentNode.GridPosition + new Vector3Int(1, 0, 0);
+            // if (rightNodePosition.x < grid.cellCountX)
+            // {
+            //     Node rightNode = grid.GetNode(rightNodePosition);
+            //     neighbours.Add(rightNode);
+            // }
+
+            // Vector3Int downNodePosition = currentNode.GridPosition + new Vector3Int(0, 0, -1);
+            // if (downNodePosition.z >= 0)
+            // {
+            //     Node downNode = grid.GetNode(downNodePosition);
+            //     neighbours.Add(downNode);
+            // }
+
+            // Vector3Int upNodePosition = currentNode.GridPosition + new Vector3Int(0, 0, 1);
+            // if (upNodePosition.z < grid.cellCountZ)
+            // {
+            //     Node upNode = grid.GetNode(upNodePosition);
+            //     neighbours.Add(upNode);
+            // }
+            //---------------------------------Teacher's version---------------------------------
+
+            //My version to find neighbours 
+            OpenNeighbours();
 
             for (int i = 0; i < neighbours.Count; i++)
             {
+
+                if (neighbours[i].version < globalVersion)
+                {
+                    neighbours[i].version = globalVersion;
+                    neighbours[i].HCost = 0;
+                    neighbours[i].GCost = 0;
+                    neighbours[i].parent = null;
+                }
                 neighbours[i].NodeObject.GetComponent<Renderer>().material.color = Color.gray;
 
                 if (!neighbours[i].IsWalkable || closedList.Contains(neighbours[i]))
@@ -105,36 +185,56 @@ public class AStar : MonoBehaviour
                         openList.Add(neighbours[i]);
                     }
                 }
+
+            }
+
+            if (openList.Count <= 0)
+            {
+                break;
             }
         }
-        //-------------------------------------teacher's way neighbours--------------------------------------//
     }
 
-    // public void OpenNeighbours()
-    // {
-    //     currentPosition = currentNode.GridPosition;
-    //     Node neighbourUp = grid.NeighbourUp(currentPosition);
-    //     if (neighbourUp != null)
-    //     {
-    //         neighbourUp.NodeObject.GetComponent<Renderer>().material.color = Color.grey;
-    //     }
+    void GetFinalPath(Node node)
+    {
+        if (node == null || finalPath.Contains(node))
+        {
+            return;
+        }
 
-    //     Node neighbourDown = grid.NeighbourDown(currentPosition);
-    //     if (neighbourDown != null)
-    //     {
-    //         neighbourDown.NodeObject.GetComponent<Renderer>().material.color = Color.grey;
-    //     }
+        finalPath.Add(node);
 
-    //     Node neighbourLeft = grid.NeighbourLeft(currentPosition);
-    //     if (neighbourLeft != null)
-    //     {
-    //         neighbourLeft.NodeObject.GetComponent<Renderer>().material.color = Color.grey;
-    //     }
+        if (node.parent != null)
+        {
+            GetFinalPath(node.parent);
+        }
+    }
 
-    //     Node neighbourRight = grid.NeighbourRight(currentPosition);
-    //     if (neighbourRight != null)
-    //     {
-    //         neighbourRight.NodeObject.GetComponent<Renderer>().material.color = Color.grey;
-    //     }
-    // }
+    public void OpenNeighbours()
+    {
+        currentPosition = currentNode.GridPosition;
+        Node neighbourUp = grid.NeighbourUp(currentPosition);
+        if (neighbourUp != null)
+        {
+            neighbours.Add(neighbourUp);
+        }
+
+        Node neighbourDown = grid.NeighbourDown(currentPosition);
+        if (neighbourDown != null)
+        {
+            neighbours.Add(neighbourDown);
+        }
+
+        Node neighbourLeft = grid.NeighbourLeft(currentPosition);
+        if (neighbourLeft != null)
+        {
+            neighbours.Add(neighbourLeft);
+        }
+
+        Node neighbourRight = grid.NeighbourRight(currentPosition);
+        if (neighbourRight != null)
+        {
+            neighbours.Add(neighbourRight);
+        }
+    }
 }

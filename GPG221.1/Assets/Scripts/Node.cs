@@ -4,10 +4,11 @@ using UnityEngine;
 
 public class Node : IComparable
 {
-    public GameObject NodeObject {get; private set;}
+    public GameObject NodeObject { get; private set; }
     public Vector3 WorldPosition { get; private set; }
     public Vector3Int GridPosition { get; private set; }
     public Node parent;
+    public int version = 0;
     public bool IsWalkable { get; private set; }
 
     int gCost;
@@ -56,13 +57,29 @@ public class Node : IComparable
 
     public int CompareTo(object obj)
     {
-        Node node = (Node)obj;
+        if (obj == null) return -1;
 
-        if (FCost < node.FCost)
-            return -1;
-        else if (FCost > node.FCost)
-            return 1;
+        Node node = obj as Node;
+        if (node == null) return -1;
 
-        return 0;
+        int result = FCost.CompareTo(node.FCost);
+        if (result == 0)
+        {
+            result = HCost.CompareTo(node.HCost); 
+        }
+
+        return result;
+    }
+    
+    public void SetWalkable(bool state)
+    {
+        IsWalkable = state;
+
+        if (NodeObject != null)
+        {
+            var renderer = NodeObject.GetComponent<Renderer>();
+            if (renderer != null)
+                renderer.material.color = state ? Color.black : Color.red;
+        }
     }
 }
